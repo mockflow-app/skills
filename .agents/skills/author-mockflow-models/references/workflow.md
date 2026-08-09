@@ -22,7 +22,7 @@ V2 graph, graph-context, and contract reads default to `reference_format: "bound
 
 Use same-batch `local:<name>` aliases for newly created contract objects. Bound references resolve before these local aliases. After commit, discard every local alias and reread for a fresh bound map and CAS token.
 
-Treat `committed` as the public write outcome. A successful persistent mutation returns `committed: true`; a dry run returns `committed: false`. A mutation that leaves a CAS-managed draft also returns its canonical version token. A deletion does not invent a token for a draft that no longer exists.
+Treat `committed` as the public write outcome, not a quality gate. A successful persistent mutation returns `committed: true`; a dry run returns `committed: false`. Structurally valid incremental contract writes may commit while `gap_report_delta.after.blocking` remains nonzero. Inspect `introduced_items` as well as `resolved_item_ids`, then reread the gap report. A mutation that leaves a CAS-managed draft also returns its canonical version token. A deletion does not invent a token for a draft that no longer exists.
 
 ## Verify
 

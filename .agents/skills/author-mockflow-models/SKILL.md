@@ -27,6 +27,7 @@ Use the MCP as the source of live state and this skill as the operating procedur
 - Do not reuse `mcp-local-*` values. Reread the draft and use returned `mfref2.*` references.
 - Never blindly retry a mutation after a projection or transport failure. Inspect commit status and latest version token first.
 - Require `committed: true` after a successful persistent mutation and `committed: false` after a dry run. For a CAS-managed draft, use the returned canonical version token; do not expect deletions to fabricate one.
+- For contract writes, inspect `gap_report_delta.after.blocking` and `introduced_items`; a committed incremental save may still be blocked.
 - A graph edge is not executable by itself. The arrival handler must own response/failure actions, and a message producer handler must own an `emit` action for its selected edge.
 - Use graph.v7 `assign` actions for bounded literal payload changes. Keep assignment order intentional because later actions and conditions see the updated payload.
 - Treat graph.v7 and `mockflow.mcp.scenario-run.v5` as the only active graph and run schemas. Follow the live tool schemas instead of requesting retired aliases or previous envelopes.
