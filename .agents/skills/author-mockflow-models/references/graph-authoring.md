@@ -22,7 +22,10 @@ Prefer one atomic operation batch with `local:<name>` aliases for newly-created 
 - Object Store `getIn`: use one `add_interaction` with the hit as its primary response and `additional_responses` for `objectstore.missingOut`; all return edges share the same interaction atomically.
 - Topic broker relay: canonical `topic.deliverOut` to `queue.enqueueIn` uses `event_publish`, not `asynchronous_message`. Reserve `asynchronous_message` for delivery such as Queue-to-worker dispatch.
 - Handler action and catch `when` conditions use `expression.v1`. Graph edge `when` filters use `expression.v2` and are supported only on Topic `deliverOut` subscriptions.
+- Prefer one final `respond` per handler. A conditional early `respond` followed by an unconditional `respond` overlaps when the condition matches and is rejected. Put inverse guards on work that should be skipped, or give alternative response actions mutually exclusive guards.
 - A degraded catch completes through a response-compatible response, ACK, or NACK edge. A rejected catch requires an outgoing `error` edge. Service has no terminal output port. Remove the rejected catch to propagate the failure through the waiting call frame, or use a degraded response. Let a Gateway with `errorOut` shape a terminal API rejection.
+
+For data access, match port message kinds rather than reusing request ports: use `service.commandOut` for Database `queryIn`/`writeIn` and Cache `lookupIn`, `service.recordOut` for Cache `writeIn`, and `service.recordIn` for record results. Follow any compatible-port aliases returned by `graph.edge.incompatible_message`.
 
 ### Literal payload assignment
 
@@ -46,6 +49,8 @@ Use 1–16 RFC 6901 pointers with literal JSON values. Assignments run in list o
 Current `database@1.3` has independent `readOperation` (`get | query`) and `writeOperation` (`insert | update | upsert | delete`) settings. Configure both when one Database instance receives both `database.queryIn` and `database.writeIn`; this avoids the legacy single-operation port mismatch. Existing database@1.2 nodes keep their `operation` field until explicitly upgraded. On upgrade, preserve the legacy operation in the matching read or write field and use the catalog default for the other side.
 
 Database reads merge into the current payload: `get` preserves request fields and writes its result at `/record`; `query` preserves them and writes the array at `/records`. Branch on those result pointers, not on a top-level field from the returned record.
+
+Database reads evaluate `keyPath` from the current payload root. Writes first select the record at `recordPath`, then evaluate `keyPath` inside that record. `recordPath: ""` selects the whole payload and is the current Database default, so do not restate it unless the model needs a different record envelope.
 
 Handler conditions and value references use `payload` for the current mutable value. Use `input` for the immutable payload captured when that handler first arrived; it remains stable across call/await, retry, catch, and resume.
 
