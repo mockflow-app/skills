@@ -120,7 +120,7 @@ A Queue consumer may declare explicit acknowledgement when its arrival handler o
 }
 ```
 
-For a message producer, the selected handler must emit the selected edge. An unedged `fail` in that handler may reject the enclosing synchronous request independently; it is not a producer error outcome and does not require an error edge in the message binding. Message-consumer failures still require explicit selected error edges. Queue routes use enqueue/asynchronous-message semantics; topic routes use publish/event-publish semantics. `resource_key` and `channel_address` declare the logical channel; the selected graph edge associates it with the queue/topic node, so there is no separate channel-creation operation. MockFlow derives the logical message registry deterministically from complete contract declarations and graph broker nodes.
+For a producer, the selected handler must emit the selected edge. Queue routes use enqueue/asynchronous-message semantics; topic routes use publish/event-publish semantics. `resource_key` and `channel_address` declare the logical channel; the selected graph edge associates it with the queue/topic node, so there is no separate channel-creation operation. MockFlow derives the logical message registry deterministically from complete contract declarations and graph broker nodes.
 
 ## Artifact-backed examples
 
@@ -139,8 +139,6 @@ First-class contract examples point into immutable evidence; inline `json_exampl
 - `implementation_mapping` is strict: repository, package, path, symbol, ref, schemaFileRef, and migrationRef only, with at least one location field populated.
 
 For a data operation, choose a resource operation it declares. Use `transactional: not_required` unless the resource explicitly models required transaction semantics according to the returned operation contract.
-
-When practical, upsert a data resource and its first data operation in one atomic batch with `local:` references. If a resource is committed first, `contract_gap.data_resource_unused` is an expected non-blocking warning until a data operation targets it; reread the gap report after adding usage and still require final blocking to be zero.
 
 ```json
 {
@@ -162,12 +160,24 @@ When practical, upsert a data resource and its first data operation in one atomi
 
 ## Output bindings
 
-Use a current component and output port. Semantic aliases resolve only when that exact port exists on the component's current catalog version.
+Component-output bindings are independent of HTTP, message, and data-resource contracts. Creating those contracts never creates an output binding implicitly, and the gap report may remain clean when `componentOutputs.bindings` is empty.
+
+Keep the UI and contract terms distinct. A component header such as “4 outputs” counts available graph/catalog output ports. A data operation's `result_edge_refs` selects executable result routes. Only entries in `componentOutputs.bindings` are Component Output schema bindings; an output row displaying “No schema” is unbound.
+
+When component outputs or complete contract coverage are in scope:
+
+1. Read the current graph, component catalog, and contract draft. Inventory every in-scope port whose direction is `output`. If “component outputs” does not make clear whether the user wants every surfaced output or only connected payload-bearing outputs, show both discovered counts and ask which scope to bind. Do not ask when the user already requested complete or route-scoped coverage.
+2. Call `get_contract_operation_contract` for both `upsert_contract_schema` and `upsert_component_output_binding`.
+3. Create or reuse an appropriate schema for each distinct output shape. Prefer current schemas, approved examples, and executed journey evidence over inference from labels. If those sources allow incompatible shapes that would change consumers, ask which shape is authoritative. Never invent a discriminator absent from the runtime payload. In one batch, a new schema may use `local:<schema-name>` and its output binding may refer to that same local schema.
+4. Apply `upsert_component_output_binding` with the current component reference, current output-port reference or advertised semantic alias, and schema reference. Semantic aliases resolve only when that exact port exists on the component's current catalog version.
+5. Reread `get_contract_draft` and verify that `document.componentOutputs.bindings` contains one binding for every selected output port. Return a component, port, outcome, schema-key, and binding summary plus the selected and omitted counts. An empty binding collection is incomplete unless the requested scope intentionally contains no component outputs.
+
+An output binding has no journey selector or `when` condition. Model distinct outcomes with distinct component output ports and bind each port separately; for example, bind Cache `hitOut` and `missOut` independently. If several outcomes share one physical output port, use one schema that represents the permitted variants, such as an optional field or JSON Schema union, and keep the outcome condition in graph handler or edge logic. Journeys supply payloads, variables, and fixtures that select and prove those graph branches; they do not override the port's output binding.
 
 ## Completion
 
 Budget bindings from the executable boundaries reported by the coverage gap report, not from public endpoint count. Synchronous request and message coverage is normally per edge, including actor-to-gateway, gateway-to-service, service-to-external, scheduler, and message hops that reach authored handlers. Canonical Topic-to-Queue relays are excluded, and data-access edges sharing one interaction are covered once for that interaction.
 
-Call `get_contract_draft` after commit and `get_contract_gap_report`. A structurally valid contract batch can return `committed: true` while leaving blocking gaps. Inspect `gap_report_delta.after.blocking` and `introduced_items`, then reread the full report; `resolved_item_ids` alone is not completion evidence. Do not report contract completion while data usages are unsynchronized, schema references are missing, or blocking gaps remain.
+Call `get_contract_draft` after commit and `get_contract_gap_report`. A structurally valid contract batch can return `committed: true` while leaving blocking gaps. Inspect `gap_report_delta.after.blocking` and `introduced_items`, then reread the full report; `resolved_item_ids` alone is not completion evidence. A zero-gap report is also not evidence that optional component-output bindings were authored: inspect `document.componentOutputs.bindings` directly whenever they are in scope. Do not report contract completion while data usages are unsynchronized, schema references are missing, blocking gaps remain, or required output bindings are absent.
 
 Use `dry_run` only when the live `apply_contract_operations` input schema advertises it. Never infer support from another mutation tool.
