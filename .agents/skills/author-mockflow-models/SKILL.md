@@ -14,23 +14,24 @@ Use the MCP as the source of live state and this skill as the operating procedur
 3. Discover component definitions with `search_component_types`, then inspect the selected definition with `get_component_type`. Select current ports and handlers from the returned catalog and graph.
 4. Plan a coherent slice: graph behavior, contracts, resources, and at least one scenario that proves the route.
 5. Dry-run fragile graph or contract batches when supported. Apply one coherent batch with the latest version token.
-6. Reread after every committed batch. V2 graph/context/contract reads default to bound references: echo that response's `reference_bindings` into each related stateless operation batch and use its `ref:<name>` values. Treat the new version token as authoritative.
+6. Reread after committed contract, deployment, or scenario batches. A dependent graph batch may chain directly from a successful `apply_graph_operations` response only when it returns `committed: true`, `validation.valid: true`, the canonical version token, and an untruncated `reference_bindings` map. Reread at every surface boundary, after an unexpected result or layout, and before final verification.
 7. Run `validate_graph`, `get_contract_gap_report`, and `run_scenario_draft`. Do not call the model complete while blocking diagnostics or an unexecuted critical journey remain.
 8. Explain the finished model in domain terms: entry point, handler-owned route, state interaction, failure outcomes, and scenario evidence.
 
 ## Non-negotiable Rules
 
 - Use `local:<name>` only inside the batch that creates that binding, schema, resource, or example. Never persist or reuse it across calls.
-- Bound `ref:<name>` values are valid only with the exact `reference_bindings` map returned by the current read. The server remembers nothing; echo the entire returned map unchanged into every graph, contract, or deployment operation batch that uses it. The map never exceeds 512 entries.
+- Bound `ref:<name>` values are valid only with the exact `reference_bindings` map returned by the current read or eligible committed graph mutation response. The server remembers nothing; echo the entire returned map unchanged into every related operation batch that uses it. The map never exceeds 512 entries.
 - If `reference_bindings_truncated` is true, `omitted_reference_binding_count` reports eligible references left expanded as `mfref2.*`; use those values directly or request a narrower graph context.
 - Discard bound maps after every reread and use the replacement response map. Request `reference_format: "expanded"` only as a debugging escape hatch or for a lossless whole-document workflow that does not accept bindings.
-- Do not reuse `mcp-local-*` values. Reread the draft and use returned `mfref2.*` references.
+- Do not reuse `mcp-local-*` values. For an eligible dependent graph batch, use the committed response's bound references with its exact map; otherwise reread the draft and use its returned references.
 - Never blindly retry a mutation after a projection or transport failure. Inspect commit status and latest version token first.
 - Require `committed: true` after a successful persistent mutation and `committed: false` after a dry run. For a CAS-managed draft, use the returned canonical version token; do not expect deletions to fabricate one.
 - For contract writes, inspect `gap_report_delta.after.blocking` and `introduced_items`; a committed incremental save may still be blocked.
 - A graph edge is not executable by itself. The arrival handler must own response/failure actions, and a message producer handler must own an `emit` action for its selected edge.
 - Use graph.v7 `assign` actions for bounded literal payload changes. Keep assignment order intentional because later actions and conditions see the updated payload.
 - Treat graph.v7 and `mockflow.mcp.scenario-run.v5` as the only active graph and run schemas. Follow the live tool schemas instead of requesting retired aliases or previous envelopes.
+- Pre-v7 graph documents have no compatibility or migration path in the authoring tools. If a read returns one, stop and report the unsupported artifact; never convert, patch, or write it as part of normal authoring.
 - Prefer semantic aliases such as `service.publishOut` only when the current component catalog advertises that port. Use current opaque references otherwise.
 - Use `get_graph_operation_contract` or `get_contract_operation_contract` for exact operation shapes. Do not guess conditional fields.
 - Preserve compare-and-swap discipline: reread, rebase the intended change, then retry once with the latest token.

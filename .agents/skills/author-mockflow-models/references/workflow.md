@@ -20,7 +20,11 @@ Build in executable vertical slices. A slice may require more than one batch whe
 
 V2 graph, graph-context, and contract reads default to `reference_format: "bound"`. Use each returned `ref:<name>` only while echoing that same response's complete `reference_bindings` map unchanged into the related graph, contract, or deployment operation batch. The returned map has at most 512 entries and is always valid as one batch input. When `reference_bindings_truncated` is true, the reported `omitted_reference_binding_count` references remain expanded as usable `mfref2.*` values; request a narrower graph context when more bound names are useful. The server stores no map or session state. A reread replaces the map: discard the old one rather than merging maps across responses. Use `reference_format: "expanded"` only for debugging or an explicitly lossless whole-document workflow.
 
+For dependent graph batches only, a committed `apply_graph_operations` response may feed the next graph batch without an intervening reread when it returns `validation.valid: true`, its canonical version token, and `reference_bindings_truncated: false`. Echo that response's entire map unchanged and use only references it returned. Reread at a surface boundary, after an unexpected result or layout, before contract authoring, and before final verification. Contract, deployment, and scenario mutations still require their documented reread flow.
+
 Use same-batch `local:<name>` aliases for newly created contract objects. Bound references resolve before these local aliases. After commit, discard every local alias and reread for a fresh bound map and CAS token.
+
+For several HTTP operations, use `upsert_http_contracts` with 1–25 definitions and one top-level token/map instead of rotating the CAS token after each operation.
 
 Treat `committed` as the public write outcome, not a quality gate. A successful persistent mutation returns `committed: true`; a dry run returns `committed: false`. Structurally valid incremental contract writes may commit while `gap_report_delta.after.blocking` remains nonzero. Inspect `introduced_items` as well as `resolved_item_ids`, then reread the gap report. A mutation that leaves a CAS-managed draft also returns its canonical version token. A deletion does not invent a token for a draft that no longer exists.
 

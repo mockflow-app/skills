@@ -19,6 +19,9 @@
 
 ## Candidate and kind failures
 
+- `graph.edge.invalid_kind` on `queue.dlqOut`: terminal source roles derive `error`; correct the edge kind instead of using `asynchronous_message`.
+- Rejected catch on a component without a terminal output: Remove the rejected catch to propagate the failure to its caller, or model a degraded response. A Gateway may shape the terminal rejection through `errorOut`.
+- Handler action and catch `when` conditions use `expression.v1`; graph edge `when` filters use `expression.v2`.
 - Schema/resource missing: upsert earlier in the same batch or use a current persisted reference.
 - Cache: provide key template and value schema; optionally choose invalidation, and remove unsupported upsert semantics.
 - Entity: provide at least one identifier schema.
@@ -26,6 +29,8 @@
 
 ## Version and commit failures
 
+- `graph.version.unsupported`: stop authoring and report the artifact. Pre-v7 graphs have no compatibility or migration path. Do not use `replace_graph_draft` as a converter or fallback.
+- An ordinary `apply_graph_operations` validation failure rejects the atomic candidate before persistence. Correct the reported fields and retry with the same token; a concurrent write will still produce a stale-token conflict.
 - Stale token: reread and rebase once.
 - `commit_status: committed`: verify by rereading; never repeat the mutation batch.
 - `commit_status: not_committed`: correct the cause and retry with the latest token.
