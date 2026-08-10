@@ -15,8 +15,9 @@ Build in executable vertical slices. A slice may require more than one batch whe
 1. Graph component and handler-owned interactions.
 2. Contract schemas and logical resources.
 3. HTTP, message, or data operations tied to graph targets.
-4. Scenario inputs and fixtures that exercise the route.
-5. Optional deployment overlay after logical behavior is stable.
+4. Component-output schema bindings when they are in scope.
+5. Scenario inputs and fixtures that exercise the route.
+6. Optional deployment overlay after logical behavior is stable.
 
 V2 graph, graph-context, and contract reads default to `reference_format: "bound"`. Use each returned `ref:<name>` only while echoing that same response's complete `reference_bindings` map unchanged into the related graph, contract, or deployment operation batch. The returned map has at most 512 entries and is always valid as one batch input. When `reference_bindings_truncated` is true, the reported `omitted_reference_binding_count` references remain expanded as usable `mfref2.*` values; request a narrower graph context when more bound names are useful. The server stores no map or session state. A reread replaces the map: discard the old one rather than merging maps across responses. Use `reference_format: "expanded"` only for debugging or an explicitly lossless whole-document workflow.
 
@@ -33,9 +34,11 @@ Treat `committed` as the public write outcome, not a quality gate. A successful 
 - Reread the mutated surface, discard the submitted map, and compare the intended object counts and references using the new response map.
 - Run `validate_graph` and require `valid: true` for structural graph completion.
 - Run `get_contract_gap_report`; blocking must be zero before approval.
+- When component outputs are in scope, inspect `componentOutputs.bindings` directly and compare it with the selected output-port inventory; a clean gap report is insufficient.
 - Run all critical scenario drafts and inspect their terminal status and route evidence.
 - For deployment work, run `validate_deployment_view` and report fidelity.
 - Apply layout only after semantic validation, then reread and run `validate_graph` again. Layout is a committed graph mutation and its new token is authoritative.
+- Report graph routes, protocol/data/message bindings, component-output bindings, and scenario evidence as separate verified artifact classes.
 
 ## Recover from concurrency or uncertain commit state
 
