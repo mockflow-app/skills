@@ -11,8 +11,6 @@ Use scenarios as executable acceptance evidence, not decorative examples.
 4. Configure start node/port, bounded payload, fixtures, variables, seed, and stop conditions.
 5. Execute `run_scenario_draft` and inspect status, `execution_coverage.invoked_nodes`, route, failures, emitted messages, and state effects. Treat `node_ref` as the reusable component identity; labels are explanatory only.
 
-The selected start port must have exactly one executable outgoing route. If two public APIs would leave the same Actor `requestOut`, model separate Actor or External components for those callers; start-edge conditions are not available as a selector.
-
 `summary_filter` is an object, not a string. For failure-focused summaries use `{ "focus": "failures", "include_context": true }`; valid focus values are `representative`, `failures`, and `issues`.
 
 Full detail defaults to 25 events. Use `event_filter` to select kinds, severities, node/action/edge references, plus bounded `context_events`. Keep `runtime_reference_mode: "compact"` for page-local event, activation, stage, token, call-frame, correlation, payload, and state aliases; request `"resource"` only when an opaque runtime reference is specifically needed. Compact aliases are scoped to one page and must not be compared across pages. Continue with `trace.event_page.next_start_sequence` and use its matched, filtered, returned, and continuation counts.
@@ -31,6 +29,8 @@ For each critical boundary, include the smallest scenarios that prove:
 - data read/write outcomes where modeled.
 
 Keep fixtures deterministic and provider-neutral. A scenario that never traverses a newly authored handler or edge does not validate it.
+
+Use the authored contract and handler semantics to determine the expected journey outcome. If the user has not defined whether an ambiguous dependency result should succeed, reject, degrade, retry, or dead-letter and current artifacts support several choices, ask before creating a scenario. Never choose an outcome only because it produces a completed run.
 
 Database fixtures are collection-keyed. `get` preserves the input payload and adds `/record`; `query` adds `/records`. Object Store fixtures are `{ "<bucket>": { "<payload key>": { "status": "stored" } } }`, where the key comes from the component's `keyPath` (default `/key`); correlation IDs never address objects.
 
