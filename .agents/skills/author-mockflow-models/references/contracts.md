@@ -14,7 +14,7 @@ Always call `get_contract_operation_contract` for the selected operation before 
 
 ## HTTP
 
-`upsert_http_contract` accepts either an inline JSON example, an existing `schema_key`, or both. A schema key links the current draft schema; it does not create a new schema body.
+`upsert_http_contract` accepts either an inline JSON example, an existing `schema_key`, or both. A schema key links the current draft schema; it does not create a new schema body. For 2–25 operations, prefer `upsert_http_contracts`: it plans definitions sequentially against one in-memory draft, accepts top-level `reference_bindings`, and performs one atomic CAS commit.
 
 Canonical sequence:
 
@@ -120,7 +120,7 @@ A Queue consumer may declare explicit acknowledgement when its arrival handler o
 }
 ```
 
-For a producer, the selected handler must emit the selected edge. Queue routes use enqueue/asynchronous-message semantics; topic routes use publish/event-publish semantics. `resource_key` and `channel_address` declare the logical channel; the selected graph edge associates it with the queue/topic node, so there is no separate channel-creation operation. MockFlow derives the logical message registry deterministically from complete contract declarations and graph broker nodes.
+For a message producer, the selected handler must emit the selected edge. An unedged `fail` in that handler may reject the enclosing synchronous request independently; it is not a producer error outcome and does not require an error edge in the message binding. Message-consumer failures still require explicit selected error edges. Queue routes use enqueue/asynchronous-message semantics; topic routes use publish/event-publish semantics. `resource_key` and `channel_address` declare the logical channel; the selected graph edge associates it with the queue/topic node, so there is no separate channel-creation operation. MockFlow derives the logical message registry deterministically from complete contract declarations and graph broker nodes.
 
 ## Artifact-backed examples
 
@@ -134,10 +134,13 @@ First-class contract examples point into immutable evidence; inline `json_exampl
 
 - Table/collection: current `key_schema_ref`; optional record schema; declared operations.
 - Cache: `key_template` and `value_schema_ref`; optional `invalidation` and `ttl_ms`; no `upsert` operation.
-- Entity: at least one `identifier_schema_refs` entry; optional lifecycle states and resource mappings.
+- Entity: at least one `identifier_schema_refs` entry; optional `lifecycle_states` and `mapped_data_resource_refs`.
+- `mapped_data_resource_refs` may identify only other authored data resources. Graph linkage comes from data-operation targets, never from this field.
 - `implementation_mapping` is strict: repository, package, path, symbol, ref, schemaFileRef, and migrationRef only, with at least one location field populated.
 
 For a data operation, choose a resource operation it declares. Use `transactional: not_required` unless the resource explicitly models required transaction semantics according to the returned operation contract.
+
+When practical, upsert a data resource and its first data operation in one atomic batch with `local:` references. If a resource is committed first, `contract_gap.data_resource_unused` is an expected non-blocking warning until a data operation targets it; reread the gap report after adding usage and still require final blocking to be zero.
 
 ```json
 {
