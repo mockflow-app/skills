@@ -12,6 +12,17 @@ Always call `get_contract_operation_contract` for the selected operation before 
 - Bound references resolve before same-batch `local:<name>` aliases. Use `reference_format: "expanded"` only for debugging or a whole-document workflow whose mutation does not accept bindings.
 - Bound references also resolve inside structural arrays. For example, `target.result_edge_refs: ["ref:cache-hit", "ref:cache-miss"]` is valid when both names appear in the batch's top-level `reference_bindings` map.
 
+## JSON Schema patterns
+
+Author every `pattern` and `patternProperties` key in MockFlow's bounded export-safe subset. The MCP rejects an unsafe pattern before saving the contract draft.
+
+- Anchor the full value with `^` and `$` and keep the pattern at most 256 characters.
+- Do not use groups `()`, alternation `|`, counted repetitions such as `{4,}`, or backreferences such as `\1`.
+- Use at most one unescaped `*`, `+`, or `?` outside a character class, and close every character class and escape.
+- Replace counted repetitions with explicit tokens. For an order ID containing at least four digits, use `^ord-[0-9][0-9][0-9][0-9][0-9]*$`, not `^ord-[0-9]{4,}$`.
+
+Treat `json_schema.pattern_unsafe` as an authoring failure. Correct the reported schema path and resubmit the original atomic batch with its still-current token; do not wait for export to rediscover the problem.
+
 ## HTTP
 
 `upsert_http_contract` accepts either an inline JSON example, an existing `schema_key`, or both. A schema key links the current draft schema; it does not create a new schema body. For 2–25 operations, prefer `upsert_http_contracts`: it plans definitions sequentially against one in-memory draft, accepts top-level `reference_bindings`, and performs one atomic CAS commit.
