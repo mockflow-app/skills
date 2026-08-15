@@ -1,4 +1,4 @@
 interface:
   display_name: "Author MockFlow Models"
-  short_description: "Author and validate MockFlow system models"
-  default_prompt: "Use $author-mockflow-models to inspect, author, validate, and explain this MockFlow system model safely."
+  short_description: "Author, map, and validate MockFlow system models"
+  default_prompt: "Use $author-mockflow-models to inspect, clarify material ambiguity, author or map, validate, and explain this MockFlow system model safely."

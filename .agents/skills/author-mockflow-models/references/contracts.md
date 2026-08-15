@@ -23,9 +23,11 @@ Author every `pattern` and `patternProperties` key in MockFlow's bounded export-
 
 Treat `json_schema.pattern_unsafe` as an authoring failure. Correct the reported schema path and resubmit the original atomic batch with its still-current token; do not wait for export to rediscover the problem.
 
+Place `$schema` only at the root of each `json_schema` document. A nested `$schema`, including one inside `properties`, is invalid.
+
 ## HTTP
 
-`upsert_http_contract` accepts either an inline JSON example, an existing `schema_key`, or both. A schema key links the current draft schema; it does not create a new schema body. For 2–25 operations, prefer `upsert_http_contracts`: it plans definitions sequentially against one in-memory draft, accepts top-level `reference_bindings`, and performs one atomic CAS commit.
+`upsert_http_contract` accepts either an inline JSON example, an existing `schema_key`, or both. `schema_update_mode` defaults to `preserve`: a schema key links the current schema, and an example is validated and appended without replacing constraints. Use `schema_update_mode: "replace"` with `json_schema` only when intentionally replacing an existing structural schema body. Inspect `schemas[].change` in dry-run and commit results. For 2–25 operations, prefer `upsert_http_contracts`: it plans definitions sequentially against one in-memory draft, accepts top-level `reference_bindings`, and performs one atomic CAS commit.
 
 Canonical sequence:
 
@@ -190,5 +192,7 @@ An output binding has no journey selector or `when` condition. Model distinct ou
 Budget bindings from the executable boundaries reported by the coverage gap report, not from public endpoint count. Synchronous request and message coverage is normally per edge, including actor-to-gateway, gateway-to-service, service-to-external, scheduler, and message hops that reach authored handlers. Canonical Topic-to-Queue relays are excluded, and data-access edges sharing one interaction are covered once for that interaction.
 
 Call `get_contract_draft` after commit and `get_contract_gap_report`. A structurally valid contract batch can return `committed: true` while leaving blocking gaps. Inspect `gap_report_delta.after.blocking` and `introduced_items`, then reread the full report; `resolved_item_ids` alone is not completion evidence. A zero-gap report is also not evidence that optional component-output bindings were authored: inspect `document.componentOutputs.bindings` directly whenever they are in scope. Do not report contract completion while data usages are unsynchronized, schema references are missing, blocking gaps remain, or required output bindings are absent.
+
+`contract.coverage_unbound_graph_boundary` is an accurate non-blocking warning when an internal graph boundary intentionally has no separate contract. Record it as an accepted limit only in that case; keep it pending when the user requested complete boundary coverage.
 
 Use `dry_run` only when the live `apply_contract_operations` input schema advertises it. Never infer support from another mutation tool.

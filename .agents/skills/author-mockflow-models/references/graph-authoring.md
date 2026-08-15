@@ -49,6 +49,8 @@ Current `database@1.3` has independent `readOperation` (`get | query`) and `writ
 
 Database reads merge into the current payload: `get` preserves request fields and writes its result at `/record`; `query` preserves them and writes the array at `/records`. Branch on those result pointers, not on a top-level field from the returned record.
 
+Do not author handlers on Database `queryIn`, Cache `lookupIn`, or Object Store `getIn`. These intrinsic read handlers own their result envelopes and return routes. Put result branching, payload shaping, and HTTP status responses on the calling Service or Gateway. If an intrinsic read handler was authored accidentally, use `remove_port_handler`; MockFlow restores the canonical empty `catalog_default` handler even when the input port is optional. Database, Cache, and Object Store write handlers remain customizable.
+
 Handler conditions and value references use `payload` for the current mutable value. Use `input` for the immutable payload captured when that handler first arrived; it remains stable across call/await, retry, catch, and resume.
 
 A connected line without the corresponding handler action is visual documentation only and must not be used as a contract target.

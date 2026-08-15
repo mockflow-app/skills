@@ -1,7 +1,7 @@
 <!-- Explains how to install and use the MockFlow model-authoring agent skill. -->
 # MockFlow Model Authoring Skill
 
-An agent skill for inspecting, authoring, validating, simulating, and explaining distributed-system models through the MockFlow MCP.
+An agent skill for inspecting, authoring, validating, simulating, mapping to implementation, and explaining distributed-system models through the MockFlow MCP.
 
 The skill teaches coding agents the safe MockFlow authoring workflow: live discovery, graph and contract operations, reference bindings, compare-and-swap tokens, executable scenarios, deployment views, validation, and failure recovery.
 
@@ -10,7 +10,7 @@ The skill teaches coding agents the safe MockFlow authoring workflow: live disco
 Install into the current project for Codex:
 
 ```bash
-npx skills add mockflow-app/mockflow \
+npx skills add mockflow-app/skills \
   --skill author-mockflow-models \
   --agent codex
 ```
@@ -18,7 +18,7 @@ npx skills add mockflow-app/mockflow \
 Install globally:
 
 ```bash
-npx skills add mockflow-app/mockflow \
+npx skills add mockflow-app/skills \
   --skill author-mockflow-models \
   --agent codex \
   --global
@@ -27,7 +27,7 @@ npx skills add mockflow-app/mockflow \
 List the skills discoverable in this repository without installing:
 
 ```bash
-npx skills add mockflow-app/mockflow --list
+npx skills add mockflow-app/skills --list
 ```
 
 Update an existing installation:
@@ -56,6 +56,7 @@ Installing this repository adds the agent instructions only. It does not configu
     ├── deployment.md
     ├── diagnostics.md
     ├── graph-authoring.md
+    ├── implementation-mapping.md
     ├── journeys.md
     └── workflow.md
 ```

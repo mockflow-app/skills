@@ -15,7 +15,7 @@ Use scenarios as executable acceptance evidence, not decorative examples.
 
 Full detail defaults to 25 events. Use `event_filter` to select kinds, severities, node/action/edge references, plus bounded `context_events`. Keep `runtime_reference_mode: "compact"` for page-local event, activation, stage, token, call-frame, correlation, payload, and state aliases; request `"resource"` only when an opaque runtime reference is specifically needed. Compact aliases are scoped to one page and must not be compared across pages. Continue with `trace.event_page.next_start_sequence` and use its matched, filtered, returned, and continuation counts.
 
-Every evaluated branch exposes `condition_result`; `decision_coverage.entries` reports evaluation and selection counts without treating an intentionally unselected alternative as a warning.
+Every evaluated branch exposes `condition_result`; `decision_coverage.entries` reports evaluation and selection counts, readable route labels, and a bounded condition summary without exposing non-null compared literals. `DB_RESULT` events expose safe result shape, found/count, dispatch mode, and whether a result route was dispatched. An intentionally unselected alternative is not a warning.
 
 For `mockflow.mcp.scenario-run.v5`, read `run.failure_digest.entries[].incident_count` as distinct failures grouped by code, attempt, and causal lineage. `activation_count` counts affected handler activations and `evidence_event_count` counts propagated trace evidence; do not report either as an incident total. `run.failure_digest.distinct_code_count` is the number of failure codes before the 50-entry bound.
 
@@ -32,7 +32,7 @@ Keep fixtures deterministic and provider-neutral. A scenario that never traverse
 
 Use the authored contract and handler semantics to determine the expected journey outcome. If the user has not defined whether an ambiguous dependency result should succeed, reject, degrade, retry, or dead-letter and current artifacts support several choices, ask before creating a scenario. Never choose an outcome only because it produces a completed run.
 
-Database fixtures are collection-keyed. `get` preserves the input payload and adds `/record`; `query` adds `/records`. Object Store fixtures are `{ "<bucket>": { "<payload key>": { "status": "stored" } } }`, where the key comes from the component's `keyPath` (default `/key`); correlation IDs never address objects.
+Database fixtures are collection-keyed objects: `{ "orders": { "ord-1": { "id": "ord-1" } } }` or the legacy `{ "collections": { "orders": { "ord-1": { "id": "ord-1" } } } }`. A collection array such as `{ "orders": [] }` is invalid. `get` preserves the input payload and adds `/record`; a miss still contains `/record` with value `null`, so use `not_equals null` for found and `equals null` for missing. Do not use `exists` for that decision. `query` adds `/records`. Object Store fixtures are `{ "<bucket>": { "<payload key>": { "status": "stored" } } }`, where the key comes from the component's `keyPath` (default `/key`); correlation IDs never address objects.
 
 `execution_coverage` is present for both summary and full detail. It is derived from every `NODE_ENTERED` event in the run rather than the filtered trace or current event page. Repeated entries increment `invocation_count`. If `nodes_truncated` is true, request full detail and follow `trace.event_page.next_start_sequence` until exhausted, collecting `node_ref` from `trace.events` for every `NODE_ENTERED` event.
 

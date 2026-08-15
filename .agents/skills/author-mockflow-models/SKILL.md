@@ -1,6 +1,6 @@
 ---
 name: author-mockflow-models
-description: Inspect, author, validate, simulate, and explain MockFlow distributed-system models through the MockFlow MCP. Use when creating or changing diagrams, components, ports, handlers, interactions, contract schemas and operations, data resources, message channels, journeys, scenarios, deployment views, or when recovering from MockFlow MCP validation and version-token failures.
+description: Inspect, author, validate, simulate, map to implementation, and explain MockFlow distributed-system models through the MockFlow MCP. Use when creating or changing diagrams, components, ports, handlers, interactions, contract schemas and operations, data resources, message channels, journeys, scenarios, deployment views, implementation mappings, or when recovering from MockFlow MCP validation and version-token failures.
 ---
 
 # Author MockFlow Models
@@ -17,6 +17,8 @@ Use the MCP as the source of live state and this skill as the operating procedur
 6. Reread after committed contract, deployment, or scenario batches. A dependent graph batch may chain directly from a successful `apply_graph_operations` response only when it returns `committed: true`, `validation.valid: true`, the canonical version token, and an untruncated `reference_bindings` map. Reread at every surface boundary, after an unexpected result or layout, and before final verification.
 7. Run `validate_graph`, `get_contract_gap_report`, and `run_scenario_draft`. Do not call the model complete while blocking diagnostics or an unexecuted critical journey remain.
 8. Explain the finished model in domain terms: entry point, handler-owned route, state interaction, failure outcomes, and scenario evidence.
+
+For implementation mapping, use the manifest-linked implementation-context resource before scanning the local repository. Follow [implementation-mapping.md](references/implementation-mapping.md); never infer target references from a browser URL or send repository bodies to MockFlow.
 
 ## Non-negotiable Rules
 
@@ -44,6 +46,7 @@ Use the MCP as the source of live state and this skill as the operating procedur
 - Read [contracts.md](references/contracts.md) for HTTP, message, schema, data-resource, output-binding, and diagnostic examples.
 - Read [journeys.md](references/journeys.md) for scenario creation, deterministic execution, and coverage evidence.
 - Read [deployment.md](references/deployment.md) for deployment overlays and fidelity validation.
+- Read [implementation-mapping.md](references/implementation-mapping.md) when matching an existing repository to MockFlow targets or applying active implementation mappings.
 - Read [diagnostics.md](references/diagnostics.md) when any MCP call fails or returns gaps.
 
 Load only the references needed for the current slice, but always load `workflow.md` before a multi-surface authoring task.
