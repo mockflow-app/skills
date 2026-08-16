@@ -15,7 +15,7 @@ Use the MCP as the source of live state and this skill as the operating procedur
 4. Plan a coherent slice: graph behavior, contracts, resources, and at least one scenario that proves the route.
 5. Dry-run fragile graph or contract batches when supported. Apply one coherent batch with the latest version token.
 6. Reread after committed contract, deployment, or scenario batches. A dependent graph batch may chain directly from a successful `apply_graph_operations` response only when it returns `committed: true`, `validation.valid: true`, the canonical version token, and an untruncated `reference_bindings` map. Reread at every surface boundary, after an unexpected result or layout, and before final verification.
-7. Run `validate_graph`, `get_contract_gap_report`, and `run_scenario_draft`. Do not call the model complete while blocking diagnostics or an unexecuted critical journey remain.
+7. Run `validate_graph`, `get_contract_gap_report`, and `run_scenario_draft`. Do not call the model complete while blocking diagnostics or an unexecuted critical journey remain. When the requested scope includes comprehensive API, data, message, or boundary contracts, resolve every `contract.coverage_unbound_graph_boundary` item whose protocol is in scope; its generic non-blocking severity does not make requested coverage complete.
 8. Explain the finished model in domain terms: entry point, handler-owned route, state interaction, failure outcomes, and scenario evidence.
 
 For implementation mapping, use the manifest-linked implementation-context resource before scanning the local repository. Follow [implementation-mapping.md](references/implementation-mapping.md); never infer target references from a browser URL or send repository bodies to MockFlow.
@@ -38,6 +38,7 @@ For implementation mapping, use the manifest-linked implementation-context resou
 - Use `get_graph_operation_contract` or `get_contract_operation_contract` for exact operation shapes. Do not guess conditional fields.
 - Preserve compare-and-swap discipline: reread, rebase the intended change, then retry once with the latest token.
 - Report unresolved warnings and accepted modeling limits explicitly.
+- Treat completion against the user's requested scope, not only `approvalGate.eligible`. Map each `contract.coverage_unbound_graph_boundary` target back to the graph: synchronous requests are API/HTTP, data-access interactions are data, and asynchronous-message or event-publish edges are message scope. Every item in a requested protocol remains unfinished until it is bound or explicitly accepted by the user as out of scope; report warnings from protocols outside that scope without silently expanding the task.
 
 ## Route to References
 

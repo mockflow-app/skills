@@ -33,7 +33,7 @@ Treat `committed` as the public write outcome, not a quality gate. A successful 
 
 - Reread the mutated surface, discard the submitted map, and compare the intended object counts and references using the new response map.
 - Run `validate_graph` and require `valid: true` for structural graph completion.
-- Run `get_contract_gap_report`; blocking must be zero before approval.
+- Run `get_contract_gap_report`; blocking must be zero before approval. If the user requested comprehensive API, data, message, or boundary contracts, resolve every `contract.coverage_unbound_graph_boundary` item whose target edge or interaction belongs to a requested protocol unless the user explicitly accepts it as out of scope. Do not require unrelated protocols merely to reach zero total warnings, and do not treat `approvalGate.eligible: true` as proof that requested coverage is complete.
 - When component outputs are in scope, inspect `componentOutputs.bindings` directly and compare it with the selected output-port inventory; a clean gap report is insufficient.
 - Run all critical scenario drafts and inspect their terminal status and route evidence.
 - For deployment work, run `validate_deployment_view` and report fidelity.
